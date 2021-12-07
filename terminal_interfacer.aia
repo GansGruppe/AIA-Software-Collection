@@ -1,16 +1,16 @@
 % Terminal Interface(r) %
 % Created by 0x1905 for %
-% gansgruppe						%
+% gansgruppe            %
 %%%%%%%%%%%%%%%%%%%%%%%%%
-%	Copyright (c) 2021		%
-% GansGruppe						%
+%  Copyright (c) 2021   %
+% GansGruppe            %
 % Licensed under BSD 3  %
 %%%%%%%%%%%%%%%%%%%%%%%%%
 
 %
 MEMORY RESERVATIONS:
 $0-$5 subroutine parameters
-$6		new client handle
+$6    new client handle
 $fffe thread handle
 %
 
@@ -18,68 +18,68 @@ LNG_VER 2$3
 
 ; Load required APIs and Dependencies
 @PRE_COMPILE
-	#executeEnvFunc "loadAPIList('./local.set')"
-	#executeEnvFunc "loadDEPList('./dependencies.set')"
+  #executeEnvFunc "loadAPIList('./local.set')"
+  #executeEnvFunc "loadDEPList('./dependencies.set')"
 @END
 
 ; SETUP PHASE
 
-cal log:crt str"./log_%dd%dm%dy-%dh%dm%ds"	; Create new log file
+cal log:crt str"./log_%dd%dm%dy-%dh%dm%ds"  ; Create new log file
 cal log:verbose
 
-cal setupTC $#fa30 3chr'tci' $#ffeb	; All parameters are new standards introduced for this software, do not change!
-cal thread:crt 4chr'tcial' $fff0    ; Create new thread for program loaded at fff0 (.? loop)
-cpv thread:new $fffe								; Store Thread handle to address fffe
+cal setupTC $#fa30 3chr'tci' $#ffeb  ; All parameters are new standards introduced for this software, do not change!
+cal thread:crt 4chr'tcial' $fff0     ; Create new thread for program loaded at fff0 (.? loop)
+cpv thread:new $fffe                 ; Store Thread handle to address fffe
 
-cal divine:start	str"./divine/main.dasm" $fffe	; Create divine process under thread handle at fffe
-cal divine:logger log:handle										; Send log output to our loggers stdout
+cal divine:start  str"./divine/main.dasm" $fffe  ; Create divine process under thread handle at fffe
+cal divine:logger log:handle                     ; Send log output to our loggers stdout
 
-cal machine:asmexec str"./program.bin"					; Execute the compiled program
+cal machine:asmexec str"./program.bin"           ; Execute the compiled program
 
 ; END SETUP PHASE
 
 :accept
-	cal ser:accept $6	; Accept and store client handle to address 6. Halts program until connection requested
-	cmp $6 lst#banned
-	cale ser:deny $6
-	
-	cal ser:nct 4chr'c'$6 %fff1 $6; Create a new client thread
-	
+  cal ser:accept $6  ; Accept and store client handle to address 6. Halts program until connection requested
+  cmp $6 lst#banned
+  cale ser:deny $6
+  
+  cal ser:nct 4chr'c'$6 %fff1 $6 ; Create a new client thread
+  
 
 ; Shutdown Terminal-Connection listener subroutine
 ; This requires Admin permission to function since it utilizes the server API
 ; SUBROUTINE DATA LOCATIONS (32-Bit)
 ; arg1 (int) port $1 , arg2 (3chr) name $2-$4 , arg3 (int) route_address $5
 :shutTC
-	cal ser:drt $5	; Destroy address route
-	cal ser:cls $1	; Close server
-	
-	; This part of the code can't be published, since it exposes
-	; critical parts which risk safety.
-	; Removed Line Count: 21
-	
-	cmp $ffff $#0		; Check if something errored
-	jne _TCERR			; If yes, jump to the TCERR handler label
-	rete $#0				; Return if nothing errored.
+  cal ser:drt $5  ; Destroy address route
+  cal ser:cls $1  ; Close server
+  
+  ; This part of the code can't be published, since it exposes
+  ; critical parts which risk safety.
+  ; Removed Line Count: 21
+  
+  cmp $ffff $#0    ; Check if something errored
+  jne _TCERR       ; If yes, jump to the TCERR handler label
+  rete $#0         ; Return if nothing errored.
 
 ; Setup Terminal-Connection listener subroutine
 ; This requires Admin permission to function since it utilizes the server API
 ; SUBROUTINE DATA LOCATIONS (32-Bit)
 ; arg1 (int) port $1 , arg2 (3chr) name $2-$4 , arg3 (int) route_address $5
 :setupTC
-	cal ser:crt $1	; Create new server, the called subroutine is from the server-wrapper dependency
-	cal ser:rot $5	; Create the address routing
-	
-	; This part of the code can't be published, since it exposes
-	; critical parts which risk safety.
-	; Removed Line Count: 32
-	
-	cmp $ffff $#0		; Check if something errored
-	jne _TCERR			; If yes, jump to the TCERR handler label
-	rete $#0				; Return if nothing errored.
-	
+  cal ser:crt $1  ; Create new server, the called subroutine is from the server-wrapper dependency
+  cal ser:rot $5  ; Create the address routing
+  
+  ; This part of the code can't be published, since it exposes
+  ; critical parts which risk safety.
+  ; Removed Line Count: 32
+  
+  cmp $ffff $#0    ; Check if something errored
+  jne _TCERR      ; If yes, jump to the TCERR handler label
+  rete $#0        ; Return if nothing errored.
+  
 
 :TCERR
-	log:err str"An error occured (TCERR 0x"$ffff")"
-	cal err:ewt $ffff
-	exit
+  log:err str"An error occured (TCERR 0x"$ffff")"
+  cal err:ewt $ffff
+  exit
