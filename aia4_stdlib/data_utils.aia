@@ -1,0 +1,94 @@
+.start
+
+; data_utils.aia
+; Utility functions for converting data.
+;
+; THIS FILE IS PART OF THE AIA4 STDLIB
+; LICENSED UNDER ISC LICENSE
+; COPYRIGHT (C) 2021 GansGruppe
+; ------------------------------------
+
+; description: Converts a String to an Integer.
+; memory:      Uses default memory from $0-$8.
+;              Data at these addresses is saved and later restored.
+; parameter:   Expects start address for string in register $8 and end in $9
+;              Result is loaded to accumulator
+; author:      0x1905
+:strToInt
+  ; Store old data
+  push $0
+  push $1
+  push $2
+  push $3
+  push $4
+  push $5
+  push $6
+  push $7
+  push $8
+
+  ; Set our operation Data
+  set $0 0x0  ; Char Buffer
+  set $1 0x0  ; Set the char buffer to address $0
+  cpr $8 0x2  ; Copy start address to 0x2 (used as iterator)
+  cpr $9 0x3  ; Copy end address to 0x3
+  set $4 0x1  ; incrementor
+  set $5 0x0  ; Result Buffer
+  set $6 0x30 ; Char  Decrementor
+  set $7 0xa  ; Multiplier
+  set $8 0x2f ; Check helper
+  
+  ; Loop for Converting
+  :strToIntLP
+    pcpm $2 $1 ; Copy next digit to Char Buffer
+    
+    ; Format Check #1
+    cmp $0 $8       ; Check if the Char is ASCII 0x2f or lower
+    je _strToIntRET
+    jl _strToIntRET
+    
+    sub $0 $6  ; Convert Char to Int
+    cpr $1 $0  ; Copy
+    
+    ; Format Check #2
+    cmp $8 $0       ; Check if the converted digit is no larger than 9
+    je _strToIntRET
+    jl _strToIntRET
+    
+    mul $5 $7  ; Multiply ResultBuffer by 10
+    cpr $1 $5  ; Copy
+    add $5 $0  ; Add current digit
+    cpr $1 $5  ; Copy
+    
+    add $4 $2  ; Increment iterator
+    cpr $1 $2  ; Copy
+    cmp $4 $3  ; Check if in bounds
+    
+    ; Continue Looping if in bounds
+    jl _strToIntLP
+    
+    :strToIntRET
+      sreg $1 $5 ; Save conversion result to accumulator
+      
+      ; Restore old data
+      pop $8
+      pop $7
+      pop $6
+      pop $5
+      pop $4
+      pop $3
+      pop $2
+      pop $1
+      pop $0
+      
+      ret
+
+
+; d: Converts a String-Digit to a number
+; p: Data Expected in Register $8
+; m: the data is left within the accumulator
+; a: 0x1905
+:digitToNumber
+  cpr $8 $0
+  set $1 0x30
+  sub $0 $1
+  ret
