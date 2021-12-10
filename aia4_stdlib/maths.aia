@@ -1,0 +1,43 @@
+.start
+
+; data_utils.aia
+; Utility functions for calculations
+;
+; THIS FILE IS PART OF THE AIA4 STDLIB
+; LICENSED UNDER ISC LICENSE
+; COPYRIGHT (C) 2021 GansGruppe
+; ------------------------------------
+
+
+; description: Calculates the remainder of a Integer Division (Modulus)
+; memory:      Uses default memory from $0-$2, previous data
+;              is temporarly saved to stack.
+;              Result is left in accumulator.
+; parameter:   Expects dividend at register $8 and divisor at $9
+; author:      0x1111
+:divisionRemainder
+  ; Save previous data
+  push $0
+  push $1
+  push $2
+  
+  ; Copy paramters
+  cpr $8 0x0 ; dividend
+  cpr $9 0x1 ; divisor
+  ;   $2       division result
+  
+  ; Calculate
+  div $0 $1 ; dividend / divisor
+  cpr $1 $2 ; copy
+  mul $2 $1 ; result * divisor
+  cpr $1 $1 ; copy
+  cpr $8 $0 ; copy dividend
+  sub $0 $1 ; result - dividend
+  
+  ; Write back saved data
+  pop $2
+  pop $1
+  pop $0
+  
+  ret
+  
